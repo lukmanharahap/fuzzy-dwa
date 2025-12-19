@@ -1,0 +1,4 @@
+Box2D==2.3.10
+pygame==2.6.1
+numpy==2.0.2
+scikit-fuzzy==0.5.0
