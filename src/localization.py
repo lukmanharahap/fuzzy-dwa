@@ -14,18 +14,6 @@ class SimpleCorrector:
     def correct_odometry(
         self, odometry_state: Dict, lidar_scan: np.ndarray, lidar_config: Dict
     ) -> Dict:
-        """
-        Calculates the odometry error and returns a corrected state.
-
-        Args:
-            odometry_state: The robot's current noisy belief of its state.
-            lidar_scan: The current (ground truth) LiDAR scan.
-            lidar_config: Dictionary with 'rays', 'range'.
-
-        Returns:
-            A new, corrected state dictionary.
-        """
-
         odom_pos = odometry_state["position"]
         odom_angle = odometry_state["angle"]
         angle_increment = 2 * np.pi / lidar_config["rays"]

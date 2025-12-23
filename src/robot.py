@@ -23,7 +23,7 @@ class Robot:
         # 1. Physical Body
         self.body = self._create_body()
 
-        # 2. "Brain" - Lozalization, Controller, and Planner
+        # 2. Brain - Lozalization, Controller, and Planner
         self.config = ControllerConfig()
         self.localization = SimpleCorrector(static_map)
         self.controller = DWAController(
@@ -58,7 +58,6 @@ class Robot:
         self.body.angle = 0.0
         self.body.linearVelocity = (0, 0)
         self.body.angularVelocity = 0
-
         self.odometry_state = self.get_true_state()
         self.controller.reset()
         self.current_goal = None

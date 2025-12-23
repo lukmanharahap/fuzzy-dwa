@@ -122,12 +122,23 @@ class Simulation:
             self.lidar_buffer.append(self.robot.perform_lidar_scan())
 
         robot_path_history = []
-        episode_start_time = time.time()
+
+        total_algo_time_ns = 0
+        algo_step_count = 0
+        avg_algo_time_sec = 0.0
 
         while step < max_steps and not task_complete:
             delayed_odometry = self.odometry_buffer.popleft()
             delayed_lidar = self.lidar_buffer.popleft()
+
+            t_start = time.perf_counter_ns()
             action = self.robot.compute_action(delayed_odometry, delayed_lidar)
+            t_end = time.perf_counter_ns()
+
+            # Akumulasi waktu
+            total_algo_time_ns += t_end - t_start
+            algo_step_count += 1
+
             self.env.step_simulation(action)
             true_lidar_scan = self.robot.perform_lidar_scan()
             self.robot.update_odometry(cfg.PHYSICS_TIME_STEP)
@@ -138,7 +149,6 @@ class Simulation:
             robot_path_history.append(current_true_pos)
             if self.render_mode:
                 self.env.render_frame(true_lidar_scan, history=robot_path_history)
-                # self.env.render_frame(true_lidar_scan)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or (
                         event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
@@ -146,7 +156,7 @@ class Simulation:
                         return self._finalize_episode(
                             step,
                             true_lidar_scan,
-                            episode_start_time,
+                            avg_algo_time_sec,
                             False,
                             verbose,
                             seed,
@@ -155,7 +165,7 @@ class Simulation:
                         return self._finalize_episode(
                             step,
                             true_lidar_scan,
-                            episode_start_time,
+                            avg_algo_time_sec,
                             False,
                             verbose,
                             seed,
@@ -172,8 +182,12 @@ class Simulation:
             task_complete = self.env.is_task_complete()
             step += 1
 
+        # Hitung rata-rata waktu algoritma (konversi ke detik)
+        if algo_step_count > 0:
+            avg_algo_time_sec = (total_algo_time_ns / algo_step_count) / 1e9
+
         return self._finalize_episode(
-            step, true_lidar_scan, episode_start_time, task_complete, verbose, seed
+            step, true_lidar_scan, avg_algo_time_sec, task_complete, verbose, seed
         )
 
     def run_multiple_episodes(
@@ -385,12 +399,13 @@ class Simulation:
         self,
         steps: int,
         lidar_scan: np.ndarray,
-        start_time: float,
+        avg_algo_time_sec: float,
         success: bool,
         verbose: bool,
         seed: int = None,
     ) -> dict:
-        comp_time = time.time() - start_time
+        # Total = Rata-rata per step * Jumlah step
+        computation_time_seconds = avg_algo_time_sec * steps
         elapsed_time = steps * cfg.PHYSICS_TIME_STEP
         info = self.env.get_info_dict(lidar_scan)
 
@@ -418,7 +433,7 @@ class Simulation:
             "success": success,
             "steps": steps,
             "time_seconds": elapsed_time,
-            "computation_time_seconds": comp_time,
+            "computation_time_seconds": computation_time_seconds,
             "collisions": info.get("collision_count", 0.0),
             "distance_traveled": actual_length,
             "euclidean_path_length": euclidean_length,
@@ -523,13 +538,12 @@ def main():
             ((8.9, 7.0), (1.1, 0.5)),
         ]
 
-        LAYOUT_1 = [  # GOOD USED
-            # A simple "S" chicane
+        LAYOUT_1 = [
             ((3.5, 3.5), (3.5, 0.2)),
             ((6.5, 6.5), (3.5, 0.2)),
         ]
 
-        LAYOUT_2 = [  # GOOD USED
+        LAYOUT_2 = [
             ((2.0, 2.0), (0.2, 0.2)),
             ((3.0, 3.0), (0.2, 0.2)),
             ((2.0, 4.0), (0.2, 0.2)),
@@ -551,14 +565,14 @@ def main():
             ((8.0, 8.0), (0.2, 0.2)),
         ]
 
-        LAYOUT_3 = [  # GOOD USED
+        LAYOUT_3 = [
             ((5.0, 2.5), (3.6, 0.2)),
             ((5.0, 7.5), (3.6, 0.2)),
             ((2.1, 5.0), (2.1, 0.2)),
             ((7.9, 5.0), (2.1, 0.2)),
         ]
 
-        LAYOUT_4 = [  # GOOD USED
+        LAYOUT_4 = [
             ((2.0, 5.0), (0.2, 3.5)),
             ((5.0, 2.5), (1.5, 0.2)),
             ((5.0, 7.5), (1.5, 0.2)),
@@ -572,7 +586,7 @@ def main():
             "static_obs_configs": LAYOUT_3,
             "n_obstacles": 8,
             "obstacle_speed_range": (0.8, 1.5),
-            "fixed_weights": {"heading": 0.2, "velocity": 0.2, "clearance": 0.6},
+            "fixed_weights": {"heading": 0.2, "velocity": 0.35, "clearance": 0.45},
         }
 
         sim = Simulation(

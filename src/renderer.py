@@ -43,10 +43,10 @@ class Renderer:
     def _load_assets(self):
         try:
             self.assets["robot"] = self._load_image("robot.png", alpha=True)
-            self.assets["person"] = self._load_image("obs_person_1.png", alpha=True)
-            self.assets["obs_robot"] = self._load_image("obs_robot.png", alpha=True)
+            # self.assets["person"] = self._load_image("obs_person_1.png", alpha=True)
+            # self.assets["obs_robot"] = self._load_image("obs_robot.png", alpha=True)
             self.assets["tile"] = self._load_image("tile.png")
-            self.assets["block"] = self._load_image("block_square.png", alpha=True)
+            # self.assets["block"] = self._load_image("block_square.png", alpha=True)
             print("✅ Assets loaded successfully!")
         except (pygame.error, FileNotFoundError) as e:
             print(f"❌ Error loading assets: {e}. Rendering will be disabled.")

@@ -20,7 +20,7 @@ class DWAController:
         self.current_waypoint_idx = 0
         self.fuzzy_controller = FuzzyDWAController()
 
-        self.predict_time = 1.0  # <-- BEST: 1.0
+        self.predict_time = 1.0
         self.v_samples = 20
         self.w_samples = 40
 
@@ -75,7 +75,6 @@ class DWAController:
         self.current_waypoint_idx = 0
 
     def _calculate_path_length(self, path: List[np.ndarray]) -> float:
-        """Helper to calculate the total length of a given path."""
         if len(path) < 2:
             return 0.0
 

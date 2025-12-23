@@ -21,8 +21,8 @@ class AStarPlanner:
         grid_size = int(arena_size / self.resolution)
         self.grid_size = (grid_size, grid_size)
         self.grid = np.zeros(self.grid_size, dtype=bool)
-
         margin_cells = int(safety_margin / self.resolution)
+
         for obs_x, obs_y in obstacles:
             center_gx = int(obs_x / self.resolution)
             center_gy = int(obs_y / self.resolution)

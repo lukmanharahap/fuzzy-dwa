@@ -10,13 +10,11 @@ sys.path.insert(0, os.path.join(project_root, "src"))
 from src.simulation import Simulation
 
 # --- Layouts ---
-# Layout 1: Simple S-Chicane
 LAYOUT_1 = [
     ((3.5, 3.5), (3.5, 0.2)),
     ((6.5, 6.5), (3.5, 0.2)),
 ]
 
-# Layout 2: Dense Clutter
 LAYOUT_2 = [
     ((2.0, 2.0), (0.2, 0.2)),
     ((3.0, 3.0), (0.2, 0.2)),
@@ -39,7 +37,6 @@ LAYOUT_2 = [
     ((8.0, 8.0), (0.2, 0.2)),
 ]
 
-# Layout 3: Narrow Cross
 LAYOUT_3 = [
     ((5.0, 2.5), (3.6, 0.2)),
     ((5.0, 7.5), (3.6, 0.2)),
@@ -47,7 +44,6 @@ LAYOUT_3 = [
     ((7.9, 5.0), (2.1, 0.2)),
 ]
 
-# Layout 4: Box Trap
 LAYOUT_4 = [
     ((2.0, 5.0), (0.2, 3.5)),
     ((5.0, 2.5), (1.5, 0.2)),

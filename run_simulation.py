@@ -97,11 +97,11 @@ def check_assets():
         return True
 
     required_assets = [
-        "robot.png",
-        "obs_person_1.png",
-        "obs_robot.png",
         "tile.png",
-        "block_square.png",
+        "robot.png",
+        # "obs_person_1.png",
+        # "obs_robot.png",
+        # "block_square.png",
     ]
 
     missing = []
