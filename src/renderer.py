@@ -92,6 +92,7 @@ class Renderer:
                     pygame.draw.circle(self.screen, (0, 255, 255), screen_p, 3)
 
         # self._draw_ui(env_state["info"])
+        self._draw_weight_bars(env_state["info"])
         pygame.display.flip()
         if self.save_video:
             filename = os.path.join(
@@ -266,26 +267,93 @@ class Renderer:
                     self.screen, (0, 255, 0, 150), screen_vertices, 2
                 )  # Poligon hijau
 
+    # def _draw_ui(self, info: Dict):
+    #     font = pygame.font.Font(None, 24)
+    #     texts = [
+    #         # f"Step: {info.get('step_count', 0)}",
+    #         # f"True Pos: {info.get('position', np.array([0,0])).round(2)}",
+    #         # f"Odom Drift: {info.get('odometry_drift', 0):.3f} m",
+    #         # f"Collisions: {info.get('collision_count', 0)}",
+    #         # f"Min Obs Dist: {info.get('safety_margin', 0):.2f} m",
+    #         # f"Obs Density: {info.get('obs_density', 0):.2f}",
+    #         # f"True Vel: {info.get('linear_velocity', 0):.2f} m/s",
+    #         # f"Ang Vel: {info.get('angular_velocity', 0):.2f} rad/s",
+    #         f"Heading: {info.get('heading_w', 0):.2f}",
+    #         f"Velocity: {info.get('velocity_w', 0):.2f}",
+    #         f"Clearance: {info.get('clearance_w', 0):.2f}",
+    #     ]
+    #     for i, text in enumerate(texts):
+    #         shadow = font.render(text, True, (0, 0, 0))
+    #         self.screen.blit(shadow, (11, 11 + i * 25))
+    #         surface = font.render(text, True, (255, 255, 255))
+    #         self.screen.blit(surface, (10, 10 + i * 25))
+
     def _draw_ui(self, info: Dict):
         font = pygame.font.Font(None, 24)
         texts = [
-            f"Step: {info.get('step_count', 0)}",
-            f"True Pos: {info.get('position', np.array([0,0])).round(2)}",
-            f"Odom Drift: {info.get('odometry_drift', 0):.3f} m",
-            f"Collisions: {info.get('collision_count', 0)}",
-            f"Min Obs Dist: {info.get('safety_margin', 0):.2f} m",
-            f"Obs Density: {info.get('obs_density', 0):.2f}",
-            f"True Vel: {info.get('linear_velocity', 0):.2f} m/s",
-            f"Ang Vel: {info.get('angular_velocity', 0):.2f} rad/s",
-            f"Heading w: {info.get('heading_w', 0):.2f}",
-            f"Velocity w: {info.get('velocity_w', 0):.2f}",
-            f"Clearance w: {info.get('clearance_w', 0):.2f}",
+            f"Time: {info.get('distance_traveled', 0) / 1.0:.1f} s",
+            f"Vel: {info.get('linear_velocity', 0):.2f} m/s",
+            f"Obs Dist: {info.get('safety_margin', 0):.2f} m",
         ]
+
+        bg_rect = pygame.Rect(5, 5, 180, len(texts) * 25 + 10)
+        s = pygame.Surface((bg_rect.width, bg_rect.height))
+        s.set_alpha(150)
+        s.fill((0, 0, 0))
+        self.screen.blit(s, (bg_rect.x, bg_rect.y))
+
         for i, text in enumerate(texts):
-            shadow = font.render(text, True, (0, 0, 0))
-            self.screen.blit(shadow, (11, 11 + i * 25))
             surface = font.render(text, True, (255, 255, 255))
-            self.screen.blit(surface, (10, 10 + i * 25))
+            self.screen.blit(surface, (15, 10 + i * 25))
+
+        self._draw_weight_bars(info)
+
+    def _draw_weight_bars(self, info: Dict):
+        w_head = info.get("heading_w", 0.0)
+        w_vel = info.get("velocity_w", 0.0)
+        w_clear = info.get("clearance_w", 0.0)
+
+        bar_x = self.screen_size - 220
+        bar_y = 20  # Posisi Y awal
+        bar_w = 150  # Lebar maksimal bar (100%)
+        bar_h = 20  # Tinggi per bar
+        gap = 25  # Jarak antar bar
+        font = pygame.font.Font(None, 20)
+
+        # (Label, Nilai, Warna Bar)
+        bars = [
+            ("Heading", w_head, (255, 100, 100)),  # Merah
+            ("Velocity", w_vel, (100, 100, 255)),  # Biru
+            ("Clearance", w_clear, (50, 255, 50)),  # Hijau Terang
+        ]
+
+        bg_height = len(bars) * gap + 15
+        s = pygame.Surface((210, bg_height))
+        s.set_alpha(180)
+        s.fill((30, 30, 30))
+        self.screen.blit(s, (bar_x - 10, bar_y - 10))
+
+        # title = font.render("FUZZY ADAPTIVE WEIGHTS", True, (255, 255, 255))
+        # self.screen.blit(title, (bar_x, bar_y - 25))
+
+        for i, (label, value, color) in enumerate(bars):
+            current_y = bar_y + i * gap
+            text_surf = font.render(f"{label}", True, (220, 220, 220))
+            self.screen.blit(text_surf, (bar_x, current_y - 2))
+            pygame.draw.rect(
+                self.screen,
+                (60, 60, 60),
+                (bar_x + 90, current_y, bar_w - 90, bar_h - 5),
+            )
+            fill_width = int((value / 0.8) * (bar_w - 90))
+            fill_width = min(fill_width, bar_w - 90)
+
+            pygame.draw.rect(
+                self.screen, color, (bar_x + 90, current_y, fill_width, bar_h - 5)
+            )
+
+            val_text = font.render(f"{value:.2f}", True, (255, 255, 255))
+            self.screen.blit(val_text, (bar_x + bar_w + 5, current_y - 2))
 
     def _world_to_screen(self, pos: np.ndarray) -> tuple[int, int]:
         px = int(pos[0] * self.scale)
