@@ -174,8 +174,8 @@ class DWAController:
     def _predict_trajectories(
         self, pos: np.ndarray, angle: float, V: np.ndarray, W: np.ndarray
     ) -> np.ndarray:
-        final_angle = angle + W * self.predict_time
         t = self.predict_time
+        final_angle = angle + W * t
         W_e = W + 1e-6
 
         final_pos_x = (
